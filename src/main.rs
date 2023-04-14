@@ -7,7 +7,6 @@ async fn hello() -> impl Responder {
 
 #[post("/echo")]
 async fn echo(req_body: String) -> impl Responder {
-    println!("{}", req_body);
     HttpResponse::Ok().body(req_body)
 }
 
@@ -19,10 +18,13 @@ async fn manual_hello() -> impl Responder {
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
-        .service(hello)
-        .service(echo)
-        .route("/hey", web::get().to(manual_hello))
+        .service(
+            web::scope("/api")
+            .service(hello)
+            .service(echo)
+        )
     })
+    .workers(8)
     .bind(("127.0.0.1", 8080))?
     .run()
     .await
